@@ -17,9 +17,6 @@
 #include "menu.h"
 #include "struct.h"
 
-/*
- * 
- */
 int main(int argc, char** argv) {
     switch (argc) {
         case 1:
