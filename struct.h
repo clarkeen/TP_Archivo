@@ -21,14 +21,13 @@
 #include <ctype.h>
 
 #define LISTA_SIZE  10
-#define LISTA_HASH_SIZE  (LISTA_SIZE) * 100   /* 1000 <= 10 * 100 <= (LISTA_SIZE = 1 / 1%) */
+//#define LISTA_HASH_SIZE  (LISTA_SIZE) * 100   /* 1000 <= 10 * 100 <= (LISTA_SIZE = 1 / 1%) */
 //#define LISTA_HASH_SIZE  (int)((LISTA_SIZE)/(0.01))   /* LISTA_SIZE / 1% */
 #define DNI_MIN  10000000        /* 8 Dijitos sin '.' */
 #define DNI_MAX  9999999999      /* 10 Dijitos sin '.' */
 #define CARACTERES_DNI  12
 #define CARACTERES_NOMBRE  30
 #define CARACTERES_APELLIDO  30
-#define CARACTERES_REGISTRO  (CARACTERES_NOMBRE) + (CARACTERES_APELLIDO) + (CARACTERES_DNI)
 #define CARACTERES_TABLA_PRIMARIA  (int) ((3) + (3) + (CARACTERES_DNI))
 #define MASCARA_CLAVE_PRIMARIA  "%.3s%.3s%s"     /* CARACTERES_NOMBRE=3 | CARACTERES_APELLIDO=3 | CARACTERES_DNI=12 */
 
@@ -53,26 +52,23 @@ typedef struct {
     long int item;
 } tabla_primaria;
 
-extern registro registro_arreglo[LISTA_SIZE];
 extern tabla_primaria tabla_primaria_arreglo[LISTA_SIZE];
-extern long int tabla_hash_arreglo[LISTA_HASH_SIZE];
 
 long int sumar_caracteres(char cadena[]);
 int tamanio_tabla_hash(void);
-int crear_tabla_hashing(void);
+int digitos_tamanio_hash(void);
 int leer_regisrto(registro persona_vector[]);
 int valida_numero_menu(char texto[], int num_min, int num_max);
 void pausa(void);
-void mostrar_todos_los_registros(void);
+void mostrar_tabla_hash(void);
 void crear_tabla_primaria(void);
 void crear_archivo_struct(void);
 void mostrar_tabla_primaria(void);
 void guardar_tabla_primaria(void);
 void ordenar_tabla_primaria(void);
 void mostrar_striuct_registro(void);
+void mostrar_todos_los_registros(void);
 void mostrar_un_registro(long int item);
-void guardar_tabla_hash(int size_hash);
-void mostrar_tabla_hash(int size_hash);
 void guardar_registro(registro persona);
 void crear_archivo_indice_hashing(void);
 void mostrar_struct_tabla_primaria(void);
@@ -82,8 +78,11 @@ void acceso_directo_indice_primario(void);
 void acceder_archivo_tabla_primaria(registro persona);
 void unsigned_to_char(unsigned int dni, char letra[]);
 void acceder_archivo_tabla_hash(registro persona, int size_hash);
+void guardar_tabla_hash(long int tabla_hash_arreglo[], int size_hash);
+void crear_tabla_hashing(long int tabla_hash_arreglo[], int size_hash);
 registro cargar_registro(void);
 registro limpiar_registro(void);
 tabla_primaria limpiar_tabla_primaria(void);
+bool archivo_existe(char nombre[]);
 
 #endif /* STRUCT_H */

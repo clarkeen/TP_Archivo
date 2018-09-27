@@ -7,9 +7,12 @@
 #include "struct.h"
 
 
-registro registro_arreglo[LISTA_SIZE];
 tabla_primaria tabla_primaria_arreglo[LISTA_SIZE];
-long int tabla_hash_arreglo[LISTA_HASH_SIZE];
+
+bool archivo_existe(char nombre[]) {
+    FILE *f = fopen(nombre, "rb");
+    return (f) ? true : false;
+}
 
 /* ****** valida el número ingresado en la opcion entre opcion_min a num_max ****** */
 int valida_numero_menu(char texto[], int opcion_min, int num_max) {
@@ -206,15 +209,6 @@ void mostrar_un_registro(long int item) {
     puts("");
 }
 
-/* ****** mostrar la matriz de tipo registro(registro) ****** */
-void mostrar_striuct_registro(void) {
-    int i;
-    printf("| %*s | %-*s | %-*s |\n", CARACTERES_DNI, "DNI", CARACTERES_NOMBRE, "Nombre", CARACTERES_APELLIDO, "Apellido");
-    for (i = 0; i < LISTA_SIZE; i++)
-        printf("| %*s | %-*s | %-*s |\n", CARACTERES_DNI, registro_arreglo[i].dni, CARACTERES_NOMBRE, registro_arreglo[i].nombre, CARACTERES_APELLIDO, registro_arreglo[i].apellido);
-    puts("");
-}
-
 /* ****** crea tabal_primaria ****** */
 void crear_tabla_primaria(void) {
     FILE* f;
@@ -232,8 +226,10 @@ void crear_tabla_primaria(void) {
             sprintf(tabla_primaria_arreglo[i].clave_primaria, MASCARA_CLAVE_PRIMARIA, persona.apellido, persona.nombre, persona.dni);
             tabla_primaria_arreglo[++i].item = ftell(f);
         }
+        fclose(f);
+    } else {
+        error(" no existe el archivo.");
     }
-    fclose(f);
 }
 
 /* ****** ordena la matriz de tipo tabla_primaria ****** */
@@ -251,15 +247,6 @@ void ordenar_tabla_primaria(void) {
     }
 }
 
-/* ****** mostrar la matriz de tipo tabla_primaria ****** */
-void mostrar_struct_tabla_primaria(void) {
-    int i;
-    printf("| %-*s | %-8s |\n", CARACTERES_TABLA_PRIMARIA, "Clave primaria", "registro");
-    for (i = 0; i < LISTA_SIZE; i++)
-        printf("| %-*s | %8li |\n", CARACTERES_TABLA_PRIMARIA, tabla_primaria_arreglo[i].clave_primaria, tabla_primaria_arreglo[i].item);
-    puts("");
-}
-
 /* ****** mostrar la tabla_primaria ****** */
 void mostrar_tabla_primaria(void) {
     tabla_primaria aux = limpiar_tabla_primaria();
@@ -270,6 +257,8 @@ void mostrar_tabla_primaria(void) {
         while (fread(&aux, sizeof (tabla_primaria), 1, f))
             printf("| %-*s | %8li |\n", CARACTERES_TABLA_PRIMARIA, aux.clave_primaria, aux.item);
         fclose(f);
+    } else {
+        error(" no existe el archivo.");
     }
     puts("");
 }
@@ -286,75 +275,94 @@ void guardar_tabla_primaria(void) {
             fwrite(&aux, sizeof (tabla_primaria), 1, f);
         }
         fclose(f);
+    } else {
+        error(" no existe el archivo.");
     }
 }
 
-/* ****** lee el registro guardado (archivo.bin) y llena la matris devuelve la cantidad de registros cargados ****** */
-int leer_regisrto(registro persona_vector[]) {
+/* ****** lee el registro guardado (archivo.bin) y llena la matris, devuelve la cantidad de registros cargados ****** */
+int leer_regisrto(registro registro_arreglo[]) {
     FILE* f;
     registro persona = limpiar_registro();
-    int i = 0;
+    int size_hash = 0;
     f = fopen(ARCHIVO, "rb");
     if (f) {
         while (fread(&persona, sizeof (registro), 1, f)) {
-            strcpy(persona_vector[i].dni, persona.dni);
-            strcpy(persona_vector[i].nombre, persona.nombre);
-            strcpy(persona_vector[i++].apellido, persona.apellido);
+            strcpy(registro_arreglo[size_hash].dni, persona.dni);
+            strcpy(registro_arreglo[size_hash].nombre, persona.nombre);
+            strcpy(registro_arreglo[size_hash++].apellido, persona.apellido);
         }
         fclose(f);
     }
-    return i;
+    return size_hash;
+}
+
+int digitos_tamanio_hash(void) {
+    FILE* f;
+    long int aux = limpiar_tabla_hash();
+    int tamanio = 1, digitos = 1;
+    f = fopen(TABLA_HASHING, "rb");
+    if (f) {
+        while (fread(&aux, sizeof (long int), 1, f))
+            tamanio++;
+        fclose(f);
+    } else {
+        error(" no existe el archivo.");
+    }
+    while (tamanio / 10 > 0) {
+        digitos++;
+        tamanio /= 10;
+    }
+    return digitos;
 }
 
 /* ****** mostrar la tabla_hash ****** */
-void mostrar_tabla_hash(int size_hash) {
+void mostrar_tabla_hash(void) {
     FILE* f;
-    int i = 1, digitos = 1;
+    int i = 1, digitos = digitos_tamanio_hash();
     long int aux = limpiar_tabla_hash();
-    while (size_hash / 10 > 0) {
-        digitos++;
-        size_hash /= 10;
-    }
     f = fopen(TABLA_HASHING, "rb");
     if (f) {
         printf("| %*s | %*s |\n", digitos, "ID", (digitos < 4) ? 4 : digitos, "Dato");
         while (fread(&aux, sizeof (long int), 1, f))
             printf("| %*i | %*li |\n", digitos, i++, (digitos < 4) ? 4 : digitos, aux);
         fclose(f);
+    } else {
+        error(" no existe el archivo.");
     }
     puts("");
 }
 
-/* ****** crea y guarda la tabla_hashing ****** */
-int crear_tabla_hashing(void) {
-    FILE* f;
-    tabla_primaria tabla = limpiar_tabla_primaria();
-    bool guardado;
-    int i, id;
-
-    /* ****** define el largo de la tabla_hashing ****** */
+/* ****** define el largo de la tabla_hashing ****** */
+int tamanio_hash(void) {
     double porcentaje = valida_numero_porcentaje();
     porcentaje /= 100;
     int size_hash = LISTA_SIZE;
     size_hash /= porcentaje;
     puts("");
+    return size_hash;
+}
+
+/* ****** crea y guarda la tabla_hashing ****** */
+void crear_tabla_hashing(long int tabla_hash_arreglo[], int size_hash) {
+    FILE* f;
+    tabla_primaria tabla = limpiar_tabla_primaria();
+    bool guardado;
+    int i;
 
     for (i = 0; i < size_hash; i++)
         tabla_hash_arreglo[i] = limpiar_tabla_hash();
 
-    for (i = size_hash; i < LISTA_HASH_SIZE; i++)
-        tabla_hash_arreglo[i] = marcar_tabla_hash();
-
     f = fopen(TABLA_PRIMARIA, "rb");
     if (f) {
-        id = 0;
+        int id;
         long int linea = ftell(f) + 1;
         while (fread(&tabla, sizeof (tabla_primaria), 1, f)) {
             /* ****** crea la tabla_primaria ****** */
             guardado = false;
             id = (sumar_caracteres(tabla.clave_primaria) % size_hash);
             while (guardado == false) {
-                if (tabla_hash_arreglo[id] == 0) { 
+                if (tabla_hash_arreglo[id] == 0) {
                     tabla_hash_arreglo[id] = linea;
                     guardado = true;
                 } else
@@ -362,25 +370,14 @@ int crear_tabla_hashing(void) {
             }
             linea = ftell(f) + 1;
         }
+        fclose(f);
+    } else {
+        error(" no existe el archivo.");
     }
-    fclose(f);
-    return size_hash;
-}
-
-/* ****** mostrar la matriz de tipo tabla_hash ****** */
-void mostrar_struct_tabla_hash(int size_hash) {
-    int i, digitos = 1, cont_digitos = size_hash;
-    while (cont_digitos / 10 > 0) {
-        digitos++;
-        cont_digitos /= 10;
-    }
-    printf("| %*s | %*s |\n", digitos, "ID", (digitos < 4) ? 4 : digitos, "Dato");
-    for (i = 0; i < size_hash; i++)
-        printf("| %*i | %*li |\n", digitos, i + 1, (digitos < 4) ? 4 : digitos, tabla_hash_arreglo[i]);
 }
 
 /* ****** guarda la tabla_hash ****** */
-void guardar_tabla_hash(int size_hash) {
+void guardar_tabla_hash(long int tabla_hash_arreglo[], int size_hash) {
     FILE* f;
     long int aux = limpiar_tabla_hash();
     f = fopen(TABLA_HASHING, "wb");
@@ -471,6 +468,7 @@ int tamanio_tabla_hash(void) {
 /* ****** crear la estructura del registro(person) ****** */
 void crear_archivo_struct(void) {
     puts("crear un archivo con estructura de campo y regitro.\n");
+    registro registro_arreglo[LISTA_SIZE];
     int i;
     bool encontrado = false;
     int size_hash = leer_regisrto(registro_arreglo);
@@ -497,9 +495,11 @@ void crear_archivo_indice_primario(void) {
 
 void crear_archivo_indice_hashing(void) {
     puts("crear un tabla de hashing para acceso directo al archivo (utilizar saturacion prograsiva).\n");
-    int size_hash = crear_tabla_hashing();
-    guardar_tabla_hash(size_hash);
-    mostrar_tabla_hash(size_hash);
+    int size_hash = tamanio_hash();
+    long int tabla_hash_arreglo[size_hash];
+    crear_tabla_hashing(tabla_hash_arreglo, size_hash);
+    guardar_tabla_hash(tabla_hash_arreglo, size_hash);
+    mostrar_tabla_hash();
 }
 
 void acceso_directo_indice_primario(void) {

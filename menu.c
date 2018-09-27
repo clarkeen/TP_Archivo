@@ -34,7 +34,6 @@ void menu_principal() {
                 break;
             case 4:
                 menu_4();
-                pausa();
                 break;
             case 0:
                 puts("--------------------------");
