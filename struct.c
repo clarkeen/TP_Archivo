@@ -348,18 +348,19 @@ int crear_tabla_hashing(void) {
     f = fopen(TABLA_PRIMARIA, "rb");
     if (f) {
         id = 0;
+        long int linea = ftell(f) + 1;
         while (fread(&tabla, sizeof (tabla_primaria), 1, f)) {
             /* ****** crea la tabla_primaria ****** */
             guardado = false;
             id = (sumar_caracteres(tabla.clave_primaria) % size_hash);
             while (guardado == false) {
                 if (tabla_hash_arreglo[id] == 0) { 
-                    tabla_hash_arreglo[id] = (long int) (tabla.item + 1);  /* comienso del registro "+ 1"
-                                                                            * para que empiese de 1 y no de 0 en el indice de hash */
+                    tabla_hash_arreglo[id] = linea;
                     guardado = true;
                 } else
                     id = ++id % size_hash;
             }
+            linea = ftell(f) + 1;
         }
     }
     fclose(f);
@@ -438,8 +439,7 @@ void acceder_archivo_tabla_hash(registro persona, int size_hash) {
 
         f = fopen(TABLA_PRIMARIA, "rb");
         if (f) {
-            fseek(f, registro - 1, SEEK_SET); /* "- 1" reato el uno que anteriormente sume
-                                               * para que empiese de 1 y no de 0 en el indice de hash */
+            fseek(f, registro - 1, SEEK_SET);
             fread(&aux_indice_primario, sizeof (tabla_primaria), 1, f);
             item = aux_indice_primario.item;
             fclose(f);
