@@ -353,9 +353,9 @@ int crear_tabla_hashing(void) {
             guardado = false;
             id = (sumar_caracteres(tabla.clave_primaria) % size_hash);
             while (guardado == false) {
-                if (tabla_hash_arreglo[id] == 0) { /* Tamaño de registro(CARACTERES_REGISTRO), "+ 1"
-                                                     * para que empiese de 1 y no de 0 la lista */
-                    tabla_hash_arreglo[id] = (long int) (tabla.item / (CARACTERES_REGISTRO)) + 1;
+                if (tabla_hash_arreglo[id] == 0) { 
+                    tabla_hash_arreglo[id] = (long int) (tabla.item + 1);  /* comienso del registro "+ 1"
+                                                                            * para que empiese de 1 y no de 0 en el indice de hash */
                     guardado = true;
                 } else
                     id = ++id % size_hash;
@@ -419,7 +419,7 @@ void acceder_archivo_tabla_hash(registro persona, int size_hash) {
     long int aux_tabla_hashing = limpiar_tabla_hash();
     long int buscar = limpiar_tabla_hash();
     long int item;
-    int registro;
+    long int registro;
     bool encontrado = false;
 
     sprintf(aux_buscar.clave_primaria, MASCARA_CLAVE_PRIMARIA, persona.apellido, persona.nombre, persona.dni);
@@ -438,8 +438,8 @@ void acceder_archivo_tabla_hash(registro persona, int size_hash) {
 
         f = fopen(TABLA_PRIMARIA, "rb");
         if (f) {
-            fseek(f, (registro - 1) * sizeof (tabla_primaria), SEEK_SET); /* "- 1" reato el uno que anteriormente sume
-                                                                           * para que empiese de 1 y no de 0 la lista */
+            fseek(f, registro - 1, SEEK_SET); /* "- 1" reato el uno que anteriormente sume
+                                               * para que empiese de 1 y no de 0 en el indice de hash */
             fread(&aux_indice_primario, sizeof (tabla_primaria), 1, f);
             item = aux_indice_primario.item;
             fclose(f);
