@@ -34,8 +34,6 @@
 #define error(x)  printf("\nERROR, %s\n\n", x)
 #define limpiar_salto_linea()  while (getchar() != '\n')
 #define limpiar_tabla_hash()  0     /* limpia una variable de tipo tabla_hash */
-#define borrar_tabla_hash()  -1     /* borra una variable de tipo tabla_hash */
-#define marcar_tabla_hash()  -2     /* marcar una variable de tipo tabla_hash */
 
 #define ARCHIVO  "archivo.bin"
 #define TABLA_HASHING  "tabla_hashing.bin"
@@ -52,8 +50,6 @@ typedef struct {
     long int item;
 } tabla_primaria;
 
-extern tabla_primaria tabla_primaria_arreglo[LISTA_SIZE];
-
 long int sumar_caracteres(char cadena[]);
 int tamanio_tabla_hash(void);
 int digitos_tamanio_hash(void);
@@ -61,17 +57,12 @@ int leer_regisrto(registro persona_vector[]);
 int valida_numero_menu(char texto[], int num_min, int num_max);
 void pausa(void);
 void mostrar_tabla_hash(void);
-void crear_tabla_primaria(void);
 void crear_archivo_struct(void);
 void mostrar_tabla_primaria(void);
-void guardar_tabla_primaria(void);
-void ordenar_tabla_primaria(void);
-void mostrar_striuct_registro(void);
 void mostrar_todos_los_registros(void);
 void mostrar_un_registro(long int item);
 void guardar_registro(registro persona);
 void crear_archivo_indice_hashing(void);
-void mostrar_struct_tabla_primaria(void);
 void crear_archivo_indice_primario(void);
 void acceso_directo_indice_hashing(void);
 void acceso_directo_indice_primario(void);
@@ -80,9 +71,11 @@ void unsigned_to_char(unsigned int dni, char letra[]);
 void acceder_archivo_tabla_hash(registro persona, int size_hash);
 void guardar_tabla_hash(long int tabla_hash_arreglo[], int size_hash);
 void crear_tabla_hashing(long int tabla_hash_arreglo[], int size_hash);
+void crear_tabla_primaria(tabla_primaria tabla_primaria_arreglo[], int size_hash);
+void guardar_tabla_primaria(tabla_primaria tabla_primaria_arreglo[], int size_hash);
+void ordenar_tabla_primaria(tabla_primaria tabla_primaria_arreglo[], int size_hash);
 registro cargar_registro(void);
 registro limpiar_registro(void);
 tabla_primaria limpiar_tabla_primaria(void);
-bool archivo_existe(char nombre[]);
 
 #endif /* STRUCT_H */

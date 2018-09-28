@@ -15,7 +15,7 @@
 #define MENU_H
 
 void menu_principal(void);
-void menu_4(void);
+void menu_opcion_4(void);
 
 #endif /* MENU_H */
 

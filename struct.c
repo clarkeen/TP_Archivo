@@ -6,14 +6,6 @@
 
 #include "struct.h"
 
-
-tabla_primaria tabla_primaria_arreglo[LISTA_SIZE];
-
-bool archivo_existe(char nombre[]) {
-    FILE *f = fopen(nombre, "rb");
-    return (f) ? true : false;
-}
-
 /* ****** valida el número ingresado en la opcion entre opcion_min a num_max ****** */
 int valida_numero_menu(char texto[], int opcion_min, int num_max) {
     int num;
@@ -210,11 +202,11 @@ void mostrar_un_registro(long int item) {
 }
 
 /* ****** crea tabal_primaria ****** */
-void crear_tabla_primaria(void) {
+void crear_tabla_primaria(tabla_primaria tabla_primaria_arreglo[], int size_hash) {
     FILE* f;
     registro persona;
     int i;
-    for (i = 0; i < LISTA_SIZE; i++)
+    for (i = 0; i < size_hash; i++)
         tabla_primaria_arreglo[i] = limpiar_tabla_primaria();
 
     f = fopen(ARCHIVO, "rb");
@@ -233,11 +225,11 @@ void crear_tabla_primaria(void) {
 }
 
 /* ****** ordena la matriz de tipo tabla_primaria ****** */
-void ordenar_tabla_primaria(void) {
+void ordenar_tabla_primaria(tabla_primaria tabla_primaria_arreglo[], int size_hash) {
     tabla_primaria aux = limpiar_tabla_primaria();
     int i, j;
-    for (j = 1; j < LISTA_SIZE; j++) {
-        for (i = (LISTA_SIZE - 1); i >= j; i--) {
+    for (j = 1; j < size_hash; j++) {
+        for (i = (size_hash - 1); i >= j; i--) {
             if (strcmp(tabla_primaria_arreglo[i].clave_primaria, tabla_primaria_arreglo[i - 1].clave_primaria) <= 0) {
                 aux = tabla_primaria_arreglo[i];
                 tabla_primaria_arreglo[i] = tabla_primaria_arreglo[i - 1];
@@ -264,15 +256,13 @@ void mostrar_tabla_primaria(void) {
 }
 
 /* ****** guarda la tabla_primaria ****** */
-void guardar_tabla_primaria(void) {
-    tabla_primaria aux = limpiar_tabla_primaria();
+void guardar_tabla_primaria(tabla_primaria tabla_primaria_arreglo[], int size_hash) {
     FILE* f;
     int i;
     f = fopen(TABLA_PRIMARIA, "wb");
     if (f) {
-        for (i = 0; i < LISTA_SIZE; i++) {
-            aux = tabla_primaria_arreglo[i];
-            fwrite(&aux, sizeof (tabla_primaria), 1, f);
+        for (i = 0; i < size_hash; i++) {
+            fwrite(&tabla_primaria_arreglo[i], sizeof (tabla_primaria), 1, f);
         }
         fclose(f);
     } else {
@@ -293,14 +283,17 @@ int leer_regisrto(registro registro_arreglo[]) {
             strcpy(registro_arreglo[size_hash++].apellido, persona.apellido);
         }
         fclose(f);
+    } else {
+        error(" no existe el archivo.");
     }
     return size_hash;
 }
 
+/* ****** Toma el tamaño del hashing y devuenve de dicho número la cantidad de digitos que lo compone ****** */
 int digitos_tamanio_hash(void) {
     FILE* f;
     long int aux = limpiar_tabla_hash();
-    int tamanio = 1, digitos = 1;
+    int tamanio = 0, digitos = 1;
     f = fopen(TABLA_HASHING, "rb");
     if (f) {
         while (fread(&aux, sizeof (long int), 1, f))
@@ -356,7 +349,7 @@ void crear_tabla_hashing(long int tabla_hash_arreglo[], int size_hash) {
     f = fopen(TABLA_PRIMARIA, "rb");
     if (f) {
         int id;
-        long int linea = ftell(f) + 1;
+        long int linea = ftell(f) + 1; //Le sumo 1
         while (fread(&tabla, sizeof (tabla_primaria), 1, f)) {
             /* ****** crea la tabla_primaria ****** */
             guardado = false;
@@ -410,6 +403,7 @@ void acceder_archivo_tabla_primaria(registro persona) {
     mostrar_un_registro(buscar.item);
 }
 
+/* ****** acceder ****** */
 void acceder_archivo_tabla_hash(registro persona, int size_hash) {
     FILE* f;
     tabla_primaria aux_indice_primario = limpiar_tabla_primaria();
@@ -468,8 +462,8 @@ int tamanio_tabla_hash(void) {
 /* ****** crear la estructura del registro(person) ****** */
 void crear_archivo_struct(void) {
     puts("crear un archivo con estructura de campo y regitro.\n");
-    registro registro_arreglo[LISTA_SIZE];
     int i;
+    registro registro_arreglo[LISTA_SIZE];
     bool encontrado = false;
     int size_hash = leer_regisrto(registro_arreglo);
     if (size_hash > 0)
@@ -487,9 +481,10 @@ void crear_archivo_struct(void) {
 
 void crear_archivo_indice_primario(void) {
     puts("crear un archivo con un indice primario.\n");
-    crear_tabla_primaria();
-    ordenar_tabla_primaria();
-    guardar_tabla_primaria();
+    tabla_primaria tabla_primaria_arreglo[LISTA_SIZE];
+    crear_tabla_primaria(tabla_primaria_arreglo, LISTA_SIZE);
+    ordenar_tabla_primaria(tabla_primaria_arreglo, LISTA_SIZE);
+    guardar_tabla_primaria(tabla_primaria_arreglo, LISTA_SIZE);
     mostrar_tabla_primaria();
 }
 
